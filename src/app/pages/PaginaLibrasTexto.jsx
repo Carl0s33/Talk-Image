@@ -21,9 +21,12 @@ export default function PaginaLibrasTexto() {
     const carregarTudo = async () => {
       try {
         const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm");
+        const baseUrlRaw = import.meta?.env?.BASE_URL ?? '/';
+        const baseUrl = baseUrlRaw.endsWith('/') ? baseUrlRaw : `${baseUrlRaw}/`;
+        const modelUrlBase = `${baseUrl}model/model.json`;
         const modelUrl = import.meta?.env?.DEV
-          ? `/model/model.json?cb=${Date.now()}`
-          : '/model/model.json';
+          ? `${modelUrlBase}?cb=${Date.now()}`
+          : modelUrlBase;
         const [landmarker, model] = await Promise.all([
           HandLandmarker.createFromOptions(vision, {
             baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-assets/hand_landmarker.task", delegate: "GPU" },

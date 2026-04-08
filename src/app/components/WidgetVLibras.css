@@ -1,0 +1,18 @@
+/* Sobrescreve a posição padrão do VLibras */
+.vw-plugin-wrapper {
+  /* Altera de fixed para absolute para ele respeitar o seu container */
+  position: absolute !important; 
+  
+  /* Ajuste estas coordenadas para encaixar perfeitamente no seu chat */
+  top: 50px !important; 
+  right: 20px !important; 
+  
+  /* Permite redimensionar a janela do boneco */
+  transform: scale(0.9); 
+  transform-origin: top right;
+}
+
+/* Ocultar o botão flutuante padrão se você quiser abrir o boneco via código */
+/* .active[vw-access-button="true"] {
+  display: none !important;
+} */

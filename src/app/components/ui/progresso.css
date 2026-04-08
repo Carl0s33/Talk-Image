@@ -1,0 +1,13 @@
+/* ================================================
+   progresso.css — Componente Progresso
+   Talk IMAGE — Padrão Gov.br
+   ================================================ */
+
+.progresso-indicador {
+  transform: translateX(calc(-1 * var(--progresso-deslocamento, 100%)));
+  height: 100%;
+  width: 100%;
+  flex: 1;
+  background-color: hsl(var(--primary));
+  transition: transform 0.3s ease;
+}

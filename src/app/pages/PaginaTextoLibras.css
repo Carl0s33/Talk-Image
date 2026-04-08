@@ -1,0 +1,175 @@
+/* PaginaTextoLibras.css */
+
+.ptl-wrap {
+  display: flex; flex-direction: column;
+  gap: var(--esp-lg);
+  padding: var(--esp-lg) var(--esp-md) var(--esp-xl);
+  max-width: 40rem; margin: 0 auto; width: 100%;
+}
+
+.ptl-secao {
+  background: var(--branco);
+  border-radius: var(--raio-xl);
+  box-shadow: var(--sombra-card);
+  overflow: hidden;
+}
+.ptl-secao__cabecalho {
+  display: flex; align-items: center; gap: var(--esp-xs);
+  padding: var(--esp-sm) var(--esp-md);
+  background: var(--verde-claro);
+  border-bottom: 1px solid var(--verde-medio);
+  color: var(--verde);
+}
+.ptl-secao__titulo {
+  font-size: 0.875rem; font-weight: 700; color: var(--verde); flex: 1;
+}
+
+/* Textarea */
+.ptl-textarea-wrap {
+  position: relative;
+  padding: var(--esp-md) var(--esp-md) 0;
+}
+.ptl-textarea {
+  width: 100%; padding: var(--esp-md);
+  border: 1.5px solid var(--cinza-borda);
+  border-radius: var(--raio-lg);
+  font-family: var(--fonte); font-size: 1rem;
+  color: var(--cinza-escuro); background: var(--cinza-claro);
+  resize: vertical; min-height: 7rem;
+  transition: border-color 0.2s ease;
+}
+.ptl-textarea:focus {
+  outline: none;
+  border-color: var(--verde);
+  background: var(--branco);
+  box-shadow: 0 0 0 3px rgba(0,120,48,.12);
+}
+.ptl-contador {
+  position: absolute; bottom: 0.5rem; right: 1.5rem;
+  font-size: 0.75rem; color: var(--cinza-suave);
+  pointer-events: none;
+}
+.ptl-contador--alerta { color: var(--vermelho); font-weight: 700; }
+
+/* Ações */
+.ptl-acoes-texto {
+  display: flex; gap: var(--esp-sm); align-items: center;
+  padding: var(--esp-sm) var(--esp-md) var(--esp-md);
+}
+.ptl-btn {
+  display: inline-flex; align-items: center; gap: var(--esp-xs);
+  font-size: 0.9375rem; font-weight: 600; cursor: pointer;
+  padding: var(--esp-sm) var(--esp-lg);
+  border: none; border-radius: var(--raio-lg);
+  transition: var(--trans); min-height: 2.75rem;
+  /* O ESCUDO: Impede o VLibras de conseguir "ler" o texto do botão */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ptl-btn--primario { background: var(--verde); color: var(--branco); flex: 1; justify-content: center; }
+.ptl-btn--primario:hover:not(:disabled) { background: var(--verde-hover); }
+.ptl-btn--primario:disabled { background: var(--cinza-borda); color: var(--cinza-suave); cursor: not-allowed; }
+.ptl-btn--fantasma {
+  background: none; border: 1.5px solid var(--cinza-borda);
+  color: var(--cinza-medio); padding: var(--esp-sm) var(--esp-md);
+}
+.ptl-btn--fantasma:hover { border-color: var(--vermelho); color: var(--vermelho); background: var(--vermelho-claro); }
+
+.ptl-spin { animation: girar .8s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* =========================================
+   ÁREA DO AVATAR VLIBRAS (CORRIGIDA)
+========================================= */
+
+.ptl-avatar-area {
+  position: relative;
+  min-height: 400px;
+  background: linear-gradient(160deg, #f0f8f4 0%, var(--branco) 100%);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Centraliza perfeitamente o VLibras sem causar distorção */
+.ptl-avatar-area [vw="true"] {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+}
+
+/* Mantém o botão de acesso invisível, mas passível de ser clicado pelo JavaScript */
+.ptl-avatar-area [vw-access-button="true"] {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -1 !important;
+}
+
+/* =========================================
+   ANULAÇÃO DO MOUSE E SELEÇÃO DO VLIBRAS
+========================================= */
+
+/* 1. Força o cursor nativo do sistema, removendo a mãozinha global do VLibras */
+body, html, body *, .ptl-wrap * {
+  cursor: auto !important;
+}
+
+/* Restaura ponteiros normais apenas onde faz sentido */
+button, a, .ptl-btn, .vw-plugin-wrapper button {
+  cursor: pointer !important;
+}
+textarea, input, .ptl-textarea {
+  cursor: text !important;
+}
+
+/* 2. Bloqueia o balão de sugestão de tradução que aparece ao selecionar texto */
+[vp-suggestion-button], 
+.vp-suggestion-button,
+.vpw-tooltip {
+  display: none !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+/* 3. Bloqueia o interceptador de cliques na tela para evitar interações não desejadas */
+[vp-click-blocker] {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* =========================================
+   GLOSAS E DICAS
+========================================= */
+
+.ptl-glosas {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: var(--esp-xs);
+  padding: var(--esp-md);
+  margin-top: 16px;
+}
+.ptl-glosa {
+  background: var(--cinza-claro);
+  border: 1.5px solid var(--cinza-borda);
+  border-radius: var(--raio-md);
+  color: var(--cinza-medio);
+  font-size: 0.8125rem; font-weight: 700;
+  padding: 0.3rem 0.7rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+.ptl-dica {
+  display: flex; gap: var(--esp-sm); align-items: flex-start;
+  background: var(--amarelo-claro);
+  border: 1.5px solid var(--amarelo);
+  border-radius: var(--raio-lg);
+  padding: var(--esp-md);
+  color: var(--cinza-medio);
+}
+.ptl-dica svg { color: var(--amarelo); flex-shrink: 0; margin-top: .1rem; }
+.ptl-dica p { font-size: 0.875rem; line-height: 1.55; }

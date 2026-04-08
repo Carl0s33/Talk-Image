@@ -1,0 +1,36 @@
+/* ====================================================
+   Aplicacao.css — Talk IMAGE
+   Estilos Base Globais
+   ==================================================== */
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+html {
+  font-size: 100%;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  font-family: 'Roboto','Rawline',Arial,sans-serif;
+  background-color: #f4f6f4;
+  color: #333333;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.raiz-aplicacao {
+  width:100%; min-height:100vh;
+  display:flex; flex-direction:column; position:relative;
+}
+button,a,input,select,textarea { font-family:inherit; }
+button  { cursor:pointer; }
+a       { color:inherit; }
+img,svg { display:block; max-width:100%; }
+ul,ol   { list-style:none; }
+
+:focus-visible { outline:3px solid #f2a900; outline-offset:3px; }
+
+::-webkit-scrollbar       { width:0.4rem; }
+::-webkit-scrollbar-track { background:#f4f6f4; }
+::-webkit-scrollbar-thumb { background:#cccccc; border-radius:0.2rem; }
+::-webkit-scrollbar-thumb:hover { background:#007830; }

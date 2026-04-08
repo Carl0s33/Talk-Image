@@ -1,0 +1,199 @@
+/* PaginaLibrasTexto.css */
+
+/* --- VARIÁVEIS IFRN (INSTITUTO FEDERAL) --- */
+:root {
+  /* Cores oficiais baseadas no Manual de Marca do IF */
+  --ifrn-verde: #2F9E41;         /* O verde clássico da logo */
+  --ifrn-verde-escuro: #1A6B29;  /* Mais escuro para dar contraste no texto branco */
+  --ifrn-verde-hover: #13521C;   /* Para o efeito de passar o mouse no botão */
+  --ifrn-verde-claro: #EAF5EB;   /* Fundo das caixas de texto */
+  
+  --ifrn-vermelho: #DA291C;      /* O vermelho oficial da bolinha da logo */
+  --ifrn-vermelho-hover: #B81D12;
+  --ifrn-vermelho-claro: #FCEAE9;
+  
+  --ifrn-fundo: #F4F6F5;
+  --ifrn-cinza-borda: #D1D5DB;
+  --ifrn-cinza-texto: #333333;
+  --ifrn-amarelo: #F59E0B;
+  --ifrn-amarelo-claro: #FEF3C7;
+}
+
+/* --- ESTRUTURA PRINCIPAL --- */
+.ptl-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 16px;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+  /* Open Sans é a fonte oficial para materiais do IF */
+  font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* --- SEÇÕES (CARDS) --- */
+.ptl-secao {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  border: 1px solid var(--ifrn-cinza-borda);
+}
+
+.ptl-secao__cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--ifrn-verde-escuro);
+  color: #FFFFFF;
+  /* Aquele traço vermelho característico da identidade do IF na base do cabeçalho */
+  border-bottom: 4px solid var(--ifrn-vermelho); 
+}
+
+.ptl-secao__titulo {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* --- ÁREA DA CÂMERA --- */
+.ptl-camera-area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background-color: #1A1A1A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--ifrn-cinza-borda);
+}
+
+.ptl-video,
+.ptl-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ptl-canvas {
+  z-index: 10;
+  pointer-events: none;
+}
+
+.ptl-camera-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #868E96;
+  font-weight: 600;
+  z-index: 5;
+}
+
+/* --- ÁREA DE TRADUÇÃO --- */
+.ptl-caixa-traducao-wrap {
+  padding: 24px;
+  background-color: var(--ifrn-fundo);
+}
+
+.ptl-caixa-traducao {
+  width: 100%;
+  padding: 20px;
+  border: 2px solid var(--ifrn-verde);
+  border-radius: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--ifrn-verde-escuro);
+  background: var(--ifrn-verde-claro);
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- BOTÕES --- */
+.ptl-acoes {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background-color: #FFFFFF;
+}
+
+.ptl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  min-height: 48px;
+  flex: 1;
+}
+
+.ptl-btn--primario {
+  background: var(--ifrn-verde-escuro);
+  color: #FFFFFF;
+}
+
+.ptl-btn--primario:hover:not(:disabled) {
+  background: var(--ifrn-verde-hover);
+}
+
+.ptl-btn--primario:disabled {
+  background: var(--ifrn-cinza-borda);
+  color: #868E96;
+  cursor: not-allowed;
+}
+
+.ptl-btn--fantasma {
+  background: transparent;
+  border: 2px solid var(--ifrn-vermelho);
+  color: var(--ifrn-vermelho);
+}
+
+.ptl-btn--fantasma:hover {
+  background: var(--ifrn-vermelho-claro);
+  color: var(--ifrn-vermelho-hover);
+}
+
+/* --- ANIMAÇÃO DE CARREGAMENTO --- */
+.ptl-spin {
+  animation: girar 1s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+/* --- DICA / ALERTA --- */
+.ptl-dica {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--ifrn-amarelo-claro);
+  border: 1px solid var(--ifrn-amarelo);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--ifrn-cinza-texto);
+}
+
+.ptl-dica p {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}

@@ -1,0 +1,69 @@
+.ptv-wrap {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+.ptv-secao {
+  margin-bottom: 2.5rem;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px #0001;
+  padding: 1.5rem 1.2rem;
+}
+.ptv-secao__cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.ptv-secao__titulo {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.ptv-textarea-wrap {
+  position: relative;
+}
+.ptv-textarea {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 0.7rem;
+  border: 2px solid #d0d9d2;
+  padding: 0.8rem 1rem;
+  font-size: 1.1rem;
+  resize: vertical;
+  margin-bottom: 0.7rem;
+}
+.ptv-acoes-texto {
+  display: flex;
+  gap: 0.7rem;
+}
+.ptv-btn {
+  border: none;
+  border-radius: 0.6rem;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.ptv-btn--primario {
+  background: #2563eb;
+  color: #fff;
+}
+.ptv-btn--primario:disabled {
+  background: #b3c6f7;
+  color: #fff;
+  cursor: not-allowed;
+}
+.ptv-btn--fantasma {
+  background: #f3f3f3;
+  color: #2563eb;
+}
+.ptv-spin {
+  animation: ptv-spin 1s linear infinite;
+}
+@keyframes ptv-spin {
+  100% { transform: rotate(360deg); }
+}

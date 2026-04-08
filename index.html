@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Talk IMAGE Mobile Interface</title>
+    <style>
+      .pi-card {
+        border: 2.5px solid #d0d9d2;
+        border-radius: 1rem;
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .pi-card:focus-visible, .pi-card:hover {
+        border-color: #007830;
+      }
+      .alto-contraste .pi-card {
+        background: #000 !important;
+        border-color: #fff !important;
+        color: #fff !important;
+      }
+      .alto-contraste .pi-card__titulo,
+      .alto-contraste .pi-card__desc {
+        color: #fff !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      (function (l) {
+        if (l.search && l.search.startsWith('?/')) {
+          var path = l.search.slice(2);
+          var queryIndex = path.indexOf('&');
+          if (queryIndex !== -1) path = path.slice(0, queryIndex);
+          var newUrl = l.pathname.replace(/\/$/, '') + '/' + path;
+          l.history.replaceState(null, '', newUrl + l.hash);
+        }
+      })(window.location);
+    </script>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+  

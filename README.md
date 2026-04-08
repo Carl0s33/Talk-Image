@@ -18,30 +18,20 @@
 ## 📝 Visão Geral
 O **Talk-IMAGE** é uma solução de acessibilidade que utiliza **Visão Computacional** e **Inteligência Artificial** para traduzir sinais da **Língua Brasileira de Sinais (Libras)** para **texto em tempo real**.
 
-O sistema foi projetado para funcionar **diretamente no navegador (client-side)**, reduzindo latência e preservando privacidade (os frames podem ser processados localmente, sem envio para servidor, dependendo da configuração do projeto).
+O sistema foi projetado para funcionar **diretamente no navegador (client-side)**, reduzindo latência e preservando privacidade.
 
 ---
 
 ## ✨ Funcionalidades
 - Captura de vídeo em tempo real (câmera do dispositivo).
-- Extração de **landmarks** das mãos com **MediaPipe**.
-- Normalização das coordenadas para reduzir variações de posição/distância.
-- Predição contínua por **janela deslizante** (sequência temporal).
-- Classificação de sinais (ex.: `Bom dia`, `Oi`, `Obrigado`, `Outros`).
+- Extração de **landmarks** da mão com **MediaPipe**.
+- Buffer temporal com **janela deslizante** para manter o contexto do movimento.
+- Inferência no browser com **TensorFlow.js**.
+- Classificação em 4 categorias: **`Bom dia`**, **`Oi`**, **`Obrigado`** e **`Outros`**.
 
 ---
 
 ## 🧰 Tecnologias
-**Front-end**
-- React + Vite
-
-**Visão Computacional**
-- MediaPipe (Hand Landmarker)
-
-**IA / Modelo**
-- Treinamento: Python + Keras (Google Colab)
-- Inferência no browser: TensorFlow.js
-
 <div>
   <img alt="React" src="https://img.shields.io/badge/React-20232a?style=for-the-badge&logo=react&logoColor=61DAFB"/>
   <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white"/>
@@ -53,93 +43,71 @@ O sistema foi projetado para funcionar **diretamente no navegador (client-side)*
 
 ---
 
-## 🧠 Como funciona (Arquitetura)
+## 🧠 Arquitetura e Funcionamento Técnico
+O motor de tradução do Talk-IMAGE opera através de um pipeline de processamento temporal dividido em três camadas lógicas:
 
-### 1) Extração de características (MediaPipe)
-O **MediaPipe Hand Landmarker** detecta e rastreia **21 pontos** por mão em coordenadas **(X, Y, Z)**.  
-Cada frame gera **63 features** (21 × 3).
+### 1) Extração de Landmarks (Visão Computacional)
+Utilizamos o **MediaPipe Hand Landmarker** para o rastreamento dinâmico de **21 pontos-chave** da mão. Embora o MediaPipe possa detectar até duas mãos, o modelo atual foi treinado para processar **uma mão por vez** (no código, é considerada a primeira mão detectada, `landmarks[0]`).
 
-**Objetivo:** transformar imagem → dados numéricos estruturados para a rede neural.
+Cada frame produz coordenadas tridimensionais **(x, y, z)**, totalizando **63 features** (21 × 3).
 
-### 2) Normalização dos dados
-Os landmarks são normalizados para reduzir ruídos comuns, como:
-- variação de distância da câmera,
-- deslocamento da mão no frame,
-- pequenas mudanças de escala/posição.
+### 2) Normalização (Invariância de Escala)
+As coordenadas fornecidas pelo MediaPipe já vêm **normalizadas entre 0.0 e 1.0** em relação ao espaço de visualização da câmera (largura/altura da imagem). Isso reduz a influência da distância do usuário à câmera e elimina a necessidade de um pré-processamento pesado de re-scaling no cliente.
 
-> (Se quiser, posso sugerir no README o tipo exato de normalização que você usa: por ex. centralização no punho + escala por distância entre pontos-chave.)
+### 3) Janela Deslizante + Inferência Temporal (LSTM)
+O sistema implementa uma técnica de **Sliding Window**, onde os últimos **30 frames** são armazenados em um buffer (sequência temporal). Essa sequência é necessária para que a rede neural compreenda o início, meio e fim de cada sinal.
 
-### 3) Predição temporal (LSTM)
-Sinais em Libras são **movimentos**, então o modelo precisa “memória” de frames anteriores.  
-Por isso, foi usada uma **LSTM (Long Short-Term Memory)**.
-
-- **Entrada (input):** sequência de **30 frames** (janela deslizante)
-- **Dimensão por frame:** 63 features
-- **Saída (output):** classes, por exemplo: `Bom dia`, `Oi`, `Obrigado`, `Outros`
-
-### 4) Pipeline de desenvolvimento
-1. Coleta de dados primários em `.json`
-2. Treinamento no **Google Colab** (Python/Keras)
-3. Conversão do modelo para **TensorFlow.js**
-4. Integração no **React** para inferência em tempo real
+O modelo utiliza uma arquitetura **LSTM (Long Short-Term Memory)**, capaz de aprender dependências em séries temporais. O tensor de entrada **[1, 30, 63]** é processado e retorna probabilidades (Softmax) para as classes:
+- `Bom dia`
+- `Oi`
+- `Obrigado`
+- `Outros` (classe de ruído, essencial para evitar traduções indevidas)
 
 ---
 
-## 📦 Como executar localmente
+## 🔁 Pipeline de Desenvolvimento
+1. Coleta de dados primários em formato `.json`.
+2. Treinamento do modelo em **Python/Keras** (Google Colab).
+3. Conversão do modelo Keras para **TensorFlow.js**.
+4. Integração no **React** com lógica de buffer para predição contínua.
 
-### Pré-requisitos
-- Node.js (recomendado: LTS)
-- NPM (ou PNPM/Yarn, se você usar)
+---
+
+## 🎨 Interface e UX
+O design foi focado na experiência mobile, permitindo o uso rápido e intuitivo em qualquer smartphone com câmera frontal.  
+- **Protótipo Figma:** https://www.figma.com/design/I185kSzR6UlheQFbly0HVq/Talk-IMAGE-Mobile-Interface
+
+---
+
+## 🛠️ Como Executar
 
 ### 1) Instalação
 ```bash
 npm install
 ```
 
-### 2) Arquivos do modelo
+### 2) Modelo
 Garanta que os arquivos do modelo estejam em:
-
 - `public/model/model.json`
 - `public/model/group1-shard1of1.bin`
 
-> Se o teu modelo tiver mais shards (ex.: `group1-shard1of3.bin`), atualiza esta lista.
-
-### 3) Rodar o projeto
+### 3) Execução
 ```bash
 npm run dev
 ```
 
-Abra no navegador a URL que o Vite mostrar (normalmente `http://localhost:5173`).
-
 ---
 
-## 📁 Estrutura sugerida do repositório
+## 📂 Estrutura do Repositório (sugestão)
 ```text
 ├── public/
 │   └── model/                # Artefatos do modelo (TensorFlow.js)
 ├── src/
-│   ├── components/           # Componentes React (Camera, UI, etc.)
+│   ├── components/           # Componentes React (Câmera, UI, etc.)
 │   ├── styles/               # Estilos
-│   ├── services/             # (opcional) lógica de inferência / helpers
 │   └── App.jsx               # Ponto de entrada
 └── README.md
 ```
-
----
-
-## ⚠️ Observações / Limitações (honesto e “cara de TCC”)
-- Acurácia depende de iluminação, ângulo da câmera e variações de execução do sinal.
-- Classes atuais são limitadas (ex.: poucas palavras). O sistema é extensível com:
-  - mais amostras por classe,
-  - mais classes,
-  - validação cruzada e métricas (accuracy, F1-score),
-  - aumento de dados (data augmentation) aplicado aos landmarks.
-
----
-
-## 📄 Licença
-Defina aqui a licença do projeto (ex.: MIT).  
-Se ainda não definiu, recomendo adicionar um arquivo `LICENSE`.
 
 ---
 

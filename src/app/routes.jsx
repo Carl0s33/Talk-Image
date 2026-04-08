@@ -27,4 +27,6 @@ export const roteador = createBrowserRouter([
       { path: 'teste-maos',     Component: TesteMaos         },
     ],
   },
-]);
+], {
+  basename: import.meta.env.BASE_URL,
+});

@@ -29,14 +29,32 @@
     <script>
       (function () {
         var l = window.location;
-        if (l.search && l.search.startsWith('?/')) {
+        if (!l.search) return;
+
+        // Novo formato (recomendado): ?redirect=%2Flibras-texto%3Fq%3D...%23...
+        try {
+          var params = new URLSearchParams(l.search);
+          var redirect = params.get('redirect');
+          if (redirect) {
+            var decoded = decodeURIComponent(redirect);
+            var base = l.pathname.replace(/\/$/, '');
+            var newUrl = base + decoded;
+            window.history.replaceState(null, '', newUrl);
+            return;
+          }
+        } catch (e) {
+          // Ignora e tenta o fallback legado abaixo.
+        }
+
+        // Legado: ?/libras-texto&foo=bar
+        if (l.search.startsWith('?/')) {
           var pathAndQuery = l.search.slice(2);
           var queryIndex = pathAndQuery.indexOf('&');
           var path = queryIndex === -1 ? pathAndQuery : pathAndQuery.slice(0, queryIndex);
           var query = queryIndex === -1 ? '' : '?' + pathAndQuery.slice(queryIndex + 1);
 
-          var newUrl = l.pathname.replace(/\/$/, '') + '/' + path + query + l.hash;
-          window.history.replaceState(null, '', newUrl);
+          var newUrlLegacy = l.pathname.replace(/\/$/, '') + '/' + path + query + l.hash;
+          window.history.replaceState(null, '', newUrlLegacy);
         }
       })();
     </script>

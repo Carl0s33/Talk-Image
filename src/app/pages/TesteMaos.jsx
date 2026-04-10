@@ -125,6 +125,14 @@ export default function TesteMaos() {
   // 3. Controle de Hardware (Câmera)
   const ligarCamera = async () => {
     try {
+      if (!window.isSecureContext) {
+        setMensagem('A câmera só funciona em HTTPS (ou localhost). No dev via IP, use HTTPS.');
+        return;
+      }
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setMensagem('Seu navegador não suporta acesso à câmera (getUserMedia).');
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { width: 640, height: 480 } 
       });
@@ -135,7 +143,14 @@ export default function TesteMaos() {
       };
     } catch (err) {
       console.error(err);
-      setMensagem('Permissão da câmera negada!');
+      const name = err?.name;
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setMensagem('Permissão da câmera negada. Verifique as permissões do site.');
+      } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        setMensagem('Nenhuma câmera encontrada neste dispositivo.');
+      } else {
+        setMensagem('Não foi possível abrir a câmera.');
+      }
     }
   };
 

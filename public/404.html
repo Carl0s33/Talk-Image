@@ -8,7 +8,10 @@
       (function () {
         var l = window.location;
         var segments = l.pathname.split('/').filter(Boolean);
-        var base = segments.length ? '/' + segments[0] + '/' : '/';
+        // Heurística:
+        // - Project Pages: /<repo>/<rota>  => segments >= 2, base = /<repo>/
+        // - Root/Custom domain: /<rota>   => segments == 1, base = /
+        var base = segments.length >= 2 ? '/' + segments[0] + '/' : '/';
 
         // Path relative ao base (sempre começando com '/').
         var relativePath = l.pathname;

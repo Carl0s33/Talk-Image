@@ -16,6 +16,7 @@ export default function PaginaLibrasTexto() {
   const [textoTraduzido, setTextoTraduzido] = useState('');
   const [isModeloPronto, setIsModeloPronto] = useState(false);
   const [modeloIA, setModeloIA] = useState(null);
+  const [erroCamera, setErroCamera] = useState('');
 
   useEffect(() => {
     const carregarTudo = async () => {
@@ -135,8 +136,19 @@ export default function PaginaLibrasTexto() {
   };
 
   const iniciarCamera = async () => {
+    setErroCamera('');
     setEstado('carregando');
     try {
+      if (!window.isSecureContext) {
+        setErroCamera('A câmera só funciona em HTTPS (ou localhost). Se estiver acessando por IP no dev, use HTTPS.');
+        setEstado('idle');
+        return;
+      }
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setErroCamera('Seu navegador não suporta acesso à câmera (getUserMedia).');
+        setEstado('idle');
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { width: 640, height: 480, facingMode: "user" } 
       });
@@ -148,6 +160,14 @@ export default function PaginaLibrasTexto() {
         rodarDeteccao();
       };
     } catch (err) {
+      const name = err?.name;
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setErroCamera('Permissão da câmera negada. Verifique as permissões do site no navegador.');
+      } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        setErroCamera('Nenhuma câmera foi encontrada neste dispositivo.');
+      } else {
+        setErroCamera('Não foi possível abrir a câmera.');
+      }
       setEstado('idle');
     }
   };
@@ -169,6 +189,11 @@ export default function PaginaLibrasTexto() {
             {isModeloPronto ? 'Ligar Câmera' : 'Carregando IA...'}
           </button>
         </div>
+        {!!erroCamera && (
+          <div style={{ padding: '0 16px 16px', color: 'var(--ifrn-vermelho)', fontSize: 13, fontWeight: 600 }}>
+            {erroCamera}
+          </div>
+        )}
       </section>
 
       <section className="ptl-secao">

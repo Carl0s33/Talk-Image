@@ -21,9 +21,9 @@ export default function PaginaLibrasTexto() {
     const carregarTudo = async () => {
       try {
         const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm");
-        const baseUrlRaw = import.meta?.env?.BASE_URL ?? '/';
-        const baseUrl = baseUrlRaw.endsWith('/') ? baseUrlRaw : `${baseUrlRaw}/`;
-        const modelUrlBase = `${baseUrl}model/model.json`;
+        // Resolve o caminho do modelo de forma compatível com deploy em subpasta
+        // e com deep-link (ex.: /libras-texto).
+        const modelUrlBase = new URL('model/model.json', document.baseURI).toString();
         const modelUrl = import.meta?.env?.DEV
           ? `${modelUrlBase}?cb=${Date.now()}`
           : modelUrlBase;

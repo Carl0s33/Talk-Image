@@ -5,12 +5,18 @@ import './PaginaLibrasTexto.css';
 
 export default function GravadorSinais() {
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const handLandmarkerRef = useRef(null);
   const streamRef = useRef(null);
   const rafRef = useRef(null);
   const framesRef = useRef([]);
   const gravacaoInicioRef = useRef(0);
   const lastUiUpdateRef = useRef(0);
+  const autoCameraTriedRef = useRef(false);
+
+  const gravandoRef = useRef(false);
+  const modoSequenciaRef = useRef(false);
+  const sequenciaAtivaRef = useRef(false);
 
   const [nomeSinal, setNomeSinal] = useState('');
   const [gravando, setGravando] = useState(false);
@@ -18,6 +24,7 @@ export default function GravadorSinais() {
   const [isModeloPronto, setIsModeloPronto] = useState(false);
   const [cameraLigada, setCameraLigada] = useState(false);
   const [erroCamera, setErroCamera] = useState('');
+  const [handsDetectadas, setHandsDetectadas] = useState(0);
 
   const [modoSequencia, setModoSequencia] = useState(false);
   const [sequenciaAtiva, setSequenciaAtiva] = useState(false);
@@ -52,6 +59,11 @@ export default function GravadorSinais() {
     };
     init();
 
+    // No dev, tenta solicitar permissão automaticamente ao entrar na página.
+    // Obs.: alguns navegadores só permitem isso com gesto do usuário.
+    // Se falhar, o botão "Ligar Câmera" continua sendo o fallback.
+    // (Rodamos esse efeito de forma idempotente.)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -67,6 +79,28 @@ export default function GravadorSinais() {
       handLandmarkerRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!import.meta?.env?.DEV) return;
+    if (!isModeloPronto) return;
+    if (cameraLigada) return;
+    if (autoCameraTriedRef.current) return;
+    autoCameraTriedRef.current = true;
+    ligarCamera({ auto: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isModeloPronto, cameraLigada]);
+
+  useEffect(() => {
+    gravandoRef.current = gravando;
+  }, [gravando]);
+
+  useEffect(() => {
+    modoSequenciaRef.current = modoSequencia;
+  }, [modoSequencia]);
+
+  useEffect(() => {
+    sequenciaAtivaRef.current = sequenciaAtiva;
+  }, [sequenciaAtiva]);
 
   const sugestoes = [
     'Frente (0°)',
@@ -130,12 +164,83 @@ export default function GravadorSinais() {
     };
   };
 
-  const capturarFrame = () => {
-    if (!gravando || !handLandmarkerRef.current || !videoRef.current) return;
+  const HAND_CONNECTIONS = [
+    [0, 1], [1, 2], [2, 3], [3, 4],
+    [0, 5], [5, 6], [6, 7], [7, 8],
+    [5, 9], [9, 10], [10, 11], [11, 12],
+    [9, 13], [13, 14], [14, 15], [15, 16],
+    [13, 17], [17, 18], [18, 19], [19, 20],
+    [0, 17],
+  ];
 
-    const now = performance.now();
-    const results = handLandmarkerRef.current.detectForVideo(videoRef.current, now);
+  const desenharOverlay = (results) => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+    if (!canvas || !video) return;
 
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const vw = video.videoWidth || 0;
+    const vh = video.videoHeight || 0;
+    if (vw <= 0 || vh <= 0) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+
+    if (canvas.width !== vw) canvas.width = vw;
+    if (canvas.height !== vh) canvas.height = vh;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Moldura guia (informativo)
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 8]);
+    const padX = canvas.width * 0.12;
+    const padY = canvas.height * 0.12;
+    ctx.strokeRect(padX, padY, canvas.width - padX * 2, canvas.height - padY * 2);
+    ctx.restore();
+
+    const hands = results?.landmarks ?? [];
+    setHandsDetectadas((prev) => (prev === hands.length ? prev : hands.length));
+    if (!hands.length) return;
+
+    for (let h = 0; h < hands.length; h++) {
+      const hand = hands[h] ?? [];
+
+      ctx.save();
+      ctx.globalAlpha = h === 0 ? 0.95 : 0.7;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#2F9E41';
+      ctx.fillStyle = '#2F9E41';
+
+      // Linhas ("esqueleto")
+      for (const [a, b] of HAND_CONNECTIONS) {
+        const p1 = hand[a];
+        const p2 = hand[b];
+        if (!p1 || !p2) continue;
+        ctx.beginPath();
+        ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
+        ctx.lineTo(p2.x * canvas.width, p2.y * canvas.height);
+        ctx.stroke();
+      }
+
+      // Pontos
+      for (const pt of hand) {
+        if (!pt) continue;
+        ctx.beginPath();
+        ctx.arc(pt.x * canvas.width, pt.y * canvas.height, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+  };
+
+  const registrarFrame = (results, now) => {
     const handsRaw = (results?.landmarks ?? []).map((hand) => normalizeHand(hand));
     const { lr, features126 } = toLeftRight(results);
 
@@ -146,7 +251,7 @@ export default function GravadorSinais() {
       features126,
     });
 
-    if (modoSequencia && sequenciaAtiva) {
+    if (modoSequenciaRef.current && sequenciaAtivaRef.current) {
       const alvo = stopAfterFramesRef.current;
       if (framesRef.current.length >= alvo) {
         setGravando(false);
@@ -157,8 +262,21 @@ export default function GravadorSinais() {
       lastUiUpdateRef.current = now;
       setFramesCount(framesRef.current.length);
     }
+  };
 
-    rafRef.current = requestAnimationFrame(capturarFrame);
+  const tickPreview = () => {
+    if (!handLandmarkerRef.current || !videoRef.current) return;
+    if (!streamRef.current) return;
+
+    const video = videoRef.current;
+    if (video.readyState >= 2) {
+      const now = performance.now();
+      const results = handLandmarkerRef.current.detectForVideo(video, now);
+      desenharOverlay(results);
+      if (gravandoRef.current) registrarFrame(results, now);
+    }
+
+    rafRef.current = requestAnimationFrame(tickPreview);
   };
 
   const toggleGravacao = () => {
@@ -187,13 +305,23 @@ export default function GravadorSinais() {
   };
 
   useEffect(() => {
-    if (gravando) {
-      capturarFrame();
+    if (!cameraLigada) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      const ctx = canvasRef.current?.getContext?.('2d');
+      if (ctx && canvasRef.current) ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      setHandsDetectadas(0);
       return;
     }
+
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = null;
-  }, [gravando]);
+    rafRef.current = requestAnimationFrame(tickPreview);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameraLigada]);
 
   const baixarDados = (opts = {}) => {
     const sinal = nomeSinal.trim();
@@ -335,9 +463,19 @@ export default function GravadorSinais() {
     iniciarClipeComContagem(0);
   };
 
-  const ligarCamera = async () => {
+  const ligarCamera = async (opts = {}) => {
     setErroCamera('');
     try {
+      if (!window.isSecureContext) {
+        setErroCamera('A câmera só funciona em contexto seguro (HTTPS) ou localhost. No celular/na rede, use HTTPS no dev server.');
+        setCameraLigada(false);
+        return;
+      }
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setErroCamera('Seu navegador não suporta acesso à câmera (getUserMedia).');
+        setCameraLigada(false);
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 480 },
@@ -352,7 +490,8 @@ export default function GravadorSinais() {
       }
       setCameraLigada(true);
     } catch (err) {
-      setErroCamera('erro ao abrir a câmera.');
+      const msgAuto = opts?.auto ? ' Clique em “Ligar Câmera” para permitir.' : '';
+      setErroCamera(`Erro ao abrir a câmera.${msgAuto}`);
       setCameraLigada(false);
     }
   };
@@ -378,9 +517,28 @@ export default function GravadorSinais() {
 
         <div className="ptl-camera-area" style={{ maxWidth: '380px', aspectRatio: '3/4', margin: '20px auto' }}>
           <video ref={videoRef} autoPlay playsInline className="ptl-video" style={{transform: 'scaleX(-1)'}} />
+          <canvas ref={canvasRef} className="ptl-canvas" style={{ transform: 'scaleX(-1)' }} />
           {gravando && (
             <div className="ptl-gravando-badge" style={{ backgroundColor: 'var(--ifrn-vermelho)', padding: '5px 10px', borderRadius: '5px', color: 'white', position: 'absolute', top: '10px', right: '10px', fontWeight: 'bold', zIndex: 20 }}>
               REC: {framesCount}
+            </div>
+          )}
+          {cameraLigada && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '10px',
+                left: '10px',
+                zIndex: 20,
+                background: 'rgba(0,0,0,0.45)',
+                color: 'white',
+                padding: '6px 10px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+              }}
+            >
+              Mãos: {handsDetectadas}
             </div>
           )}
         </div>

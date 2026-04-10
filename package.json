@@ -4,7 +4,9 @@
   "version": "0.0.1",
   "scripts": {
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "dev:host": "vite --host",
+    "dev:https": "vite --host --https"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

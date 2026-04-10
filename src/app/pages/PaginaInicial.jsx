@@ -11,8 +11,8 @@ const modulos = [
     IconeA: Hand, IconeB: FileText,
     cor: 'azul', href: '/libras-texto',
     ariaLabel: 'Ir para módulo Libras para Texto',
-    iconeAColor: '#007830', // Verde
-    iconeBColor: '#2563eb', // Azul
+    iconeAColor: '#007830', 
+    iconeBColor: '#2563eb',
   },
   {
     id: 2, titulo: 'Texto → Libras',
